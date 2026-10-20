@@ -1,0 +1,230 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TestOrbit for SAP</title>
+<meta name="description" content="Generate SAP UAT, integration and unit test scenarios for S/4HANA Public Cloud or SAP GUI and export them to Excel.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-orbit" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><ellipse cx="12" cy="12" rx="10" ry="4.5" transform="rotate(-30 12 12)"/></symbol>
+  <symbol id="i-cloud" viewBox="0 0 24 24"><path d="M7 18h10a4 4 0 0 0 .6-7.95A6 6 0 0 0 6.1 9.5 4.25 4.25 0 0 0 7 18z"/></symbol>
+  <symbol id="i-monitor" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="12" rx="1.5"/><path d="M8 20h8M12 16v4"/></symbol>
+  <symbol id="i-sheet" viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="1.5"/><path d="M4 9h16M4 15h16M10 3v18"/></symbol>
+  <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></symbol>
+  <symbol id="i-upload" viewBox="0 0 24 24"><path d="M12 15V4M7 9l5-5 5 5M5 20h14"/></symbol>
+  <symbol id="i-file" viewBox="0 0 24 24"><path d="M14 3H7a1.5 1.5 0 0 0-1.5 1.5v15A1.5 1.5 0 0 0 7 21h10a1.5 1.5 0 0 0 1.5-1.5V7.5z"/><path d="M14 3v4.5h4.5"/></symbol>
+  <symbol id="i-play" viewBox="0 0 24 24"><path d="M7 5v14l11-7z"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="M20 20l-4.2-4.2"/></symbol>
+  <symbol id="i-settings" viewBox="0 0 24 24"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
+  <symbol id="i-chev" viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></symbol>
+  <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></symbol>
+  <symbol id="i-trash" viewBox="0 0 24 24"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></symbol>
+  <symbol id="i-alert" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7.5v5.5M12 16.5v.01"/></symbol>
+  <symbol id="i-users" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6M16 4.5a3.5 3.5 0 0 1 0 7M21 20c0-2.6-1.6-4.8-4-5.6"/></symbol>
+  <symbol id="i-flow" viewBox="0 0 24 24"><rect x="3" y="4" width="6" height="6" rx="1"/><rect x="15" y="14" width="6" height="6" rx="1"/><path d="M6 10v4a3 3 0 0 0 3 3h6"/></symbol>
+  <symbol id="i-code" viewBox="0 0 24 24"><path d="M8 7l-5 5 5 5M16 7l5 5-5 5M14 4l-4 16"/></symbol>
+  <symbol id="i-list" viewBox="0 0 24 24"><path d="M9 6h11M9 12h11M9 18h11M4 6h.01M4 12h.01M4 18h.01"/></symbol>
+  <symbol id="i-spark" viewBox="0 0 24 24"><path d="M12 3v4M12 17v4M3 12h4M17 12h4M6 6l2.5 2.5M15.5 15.5L18 18M6 18l2.5-2.5M15.5 8.5L18 6"/></symbol>
+</svg>
+
+<header class="shell">
+  <div class="brand">
+    <div class="brand-mark"><svg class="icon"><use href="#i-orbit"/></svg></div>
+    <div>
+      <div class="brand-name">TestOrbit for SAP</div>
+      <div class="brand-sub">UAT · Integration · Unit test scenarios</div>
+    </div>
+  </div>
+  <span class="shell-label" id="env-label">Target</span>
+  <div class="env-switch" role="group" aria-labelledby="env-label">
+    <button type="button" data-env="cloud" aria-pressed="true"><svg class="icon"><use href="#i-cloud"/></svg>SAP S/4HANA Public Cloud <small>Fiori apps</small></button>
+    <button type="button" data-env="gui" aria-pressed="false"><svg class="icon"><use href="#i-monitor"/></svg>SAP GUI <small>T-codes</small></button>
+  </div>
+  <div class="shell-actions">
+    <button type="button" class="btn-shell" id="btn-ai-settings" title="AI generation settings"><span class="dot" id="ai-dot"></span><svg class="icon"><use href="#i-settings"/></svg><span class="label">AI settings</span></button>
+    <button type="button" class="btn-shell" id="btn-open-excel"><svg class="icon"><use href="#i-sheet"/></svg><span class="label">Excel Hub</span></button>
+  </div>
+</header>
+
+<div class="layout">
+  <aside class="sidebar" aria-label="Scenario navigation">
+    <div class="side-section">
+      <div class="side-title">Scenario matrix</div>
+      <nav id="type-nav"></nav>
+    </div>
+    <div class="side-section">
+      <div class="side-title">Execution status</div>
+      <div class="status-list" id="status-summary"></div>
+      <div class="progress" id="status-bar" aria-hidden="true"></div>
+    </div>
+    <div class="side-section">
+      <div class="side-title">Workbook details</div>
+      <div class="field"><label for="proj-name">Project</label><input class="input" id="proj-name" placeholder="e.g. S/4HANA Finance rollout"></div>
+      <div class="field"><label for="proj-release">Release / wave</label><input class="input" id="proj-release" placeholder="e.g. Wave 2"></div>
+    </div>
+    <div class="side-foot">Fiori app names follow the SAP Fiori Apps Library. Confirm availability against your release and activated scope items.</div>
+  </aside>
+
+  <main class="main" id="main">
+    <section class="card" aria-labelledby="gen-title">
+      <div class="card-head">
+        <div>
+          <h2 id="gen-title">Scenario generator</h2>
+          <p id="gen-sub"></p>
+        </div>
+      </div>
+      <div class="card-body">
+        <div>
+          <div class="step-label"><span class="num">01</span>Test type</div>
+          <div class="type-tiles" id="type-tiles">
+            <button type="button" class="tile" data-type="UAT"><strong><svg class="icon"><use href="#i-users"/></svg>User acceptance (UAT)</strong><span>Role-based business scenarios with acceptance criteria for key users.</span></button>
+            <button type="button" class="tile" data-type="Integration"><strong><svg class="icon"><use href="#i-flow"/></svg>Integration</strong><span>End-to-end flows across modules: document flow and postings.</span></button>
+            <button type="button" class="tile" data-type="Unit"><strong><svg class="icon"><use href="#i-code"/></svg>Unit testing</strong><span>ABAP Unit cases for custom code, BAdIs and extensions.</span></button>
+          </div>
+        </div>
+
+        <div>
+          <div class="step-label"><span class="num">02</span><span id="scope-label">Modules</span><span class="hint" id="scope-hint"></span></div>
+          <div id="scope"></div>
+          <div id="pipeline"></div>
+        </div>
+
+        <div>
+          <div class="step-label"><label for="guidance"><span class="num">03</span> Guidance</label><span class="hint">Business rules, org units, T-codes and edge cases. The generator reads this text.</span></div>
+          <div class="guidance-wrap">
+            <textarea class="textarea" id="guidance" maxlength="4000" placeholder="e.g. Company code 1010, plant 1010, supplier 17300001. Focus on 3-way match with price tolerance, negative tests for blocked suppliers, intercompany billing to company code 1710, tax code V1, foreign currency USD."></textarea>
+            <span class="char-count" id="char-count">0 / 4000</span>
+          </div>
+          <div class="insert-row">
+            <span>Insert:</span>
+            <button type="button" class="ins" data-ins="Include negative tests for blocked master data and invalid entries.">+ Negative tests</button>
+            <button type="button" class="ins" data-ins="Check price and quantity tolerance limits (boundary values).">+ Tolerance limits</button>
+            <button type="button" class="ins" data-ins="Validate tax code V1 and tax amounts.">+ Tax</button>
+            <button type="button" class="ins" data-ins="Intercompany scenario between company code 1010 and 1710.">+ Intercompany</button>
+            <button type="button" class="ins" data-ins="Foreign currency USD with exchange-rate differences.">+ Foreign currency</button>
+            <button type="button" class="ins" data-ins="Test authorization / segregation of duties for each role.">+ Authorization (SoD)</button>
+            <button type="button" class="ins" data-ins="Include approval / release workflow.">+ Approval workflow</button>
+          </div>
+          <div class="detected" id="detected" aria-live="polite"></div>
+        </div>
+      </div>
+      <div class="gen-bar">
+        <label class="check-opt"><input type="checkbox" id="opt-negative" checked> Negative tests</label>
+        <label class="check-opt"><input type="checkbox" id="opt-boundary" checked> Boundary / tolerance</label>
+        <div class="seg" role="group" aria-label="Generation engine">
+          <button type="button" data-mode="library" aria-pressed="true">Built-in library</button>
+          <button type="button" data-mode="ai" aria-pressed="false"><svg class="icon"><use href="#i-spark"/></svg>AI · free model</button>
+        </div>
+        <span class="spacer"></span>
+        <button type="button" class="btn btn-primary" id="btn-generate"><svg class="icon"><use href="#i-play"/></svg><span>Generate scenarios</span></button>
+      </div>
+    </section>
+
+    <div id="banner-slot"></div>
+
+    <section class="card" aria-labelledby="res-title">
+      <div class="card-head">
+        <div>
+          <h2 id="res-title">Scenario matrix</h2>
+          <p>Click a row to see steps, record results and set status.</p>
+        </div>
+        <div style="margin-left:auto;display:flex;gap:8px;flex-wrap:wrap">
+          <button type="button" class="btn btn-secondary btn-sm" id="btn-template"><svg class="icon"><use href="#i-file"/></svg>UAT template (.xlsx)</button>
+          <button type="button" class="btn btn-excel btn-sm" id="btn-export-quick"><svg class="icon"><use href="#i-download"/></svg>Export to Excel</button>
+        </div>
+      </div>
+      <div class="toolbar">
+        <div class="search"><svg class="icon"><use href="#i-search"/></svg><input class="input" id="f-q" type="search" placeholder="Search ID, title, T-code, app" aria-label="Search scenarios"></div>
+        <select class="select" id="f-env" aria-label="Filter by environment"><option value="All">All environments</option><option value="cloud">Public Cloud</option><option value="gui">SAP GUI</option></select>
+        <select class="select" id="f-status" aria-label="Filter by status"></select>
+        <select class="select" id="f-module" aria-label="Filter by module"></select>
+        <span class="meta" id="f-meta"></span>
+        <div class="right">
+          <button type="button" class="btn btn-ghost btn-sm" id="btn-clear-all"><svg class="icon"><use href="#i-trash"/></svg>Clear all</button>
+        </div>
+      </div>
+      <div class="bulk" id="bulk">
+        <strong id="bulk-n">0</strong> selected
+        <select class="select" id="bulk-status" aria-label="Set status for selected"><option value="">Set status…</option></select>
+        <button type="button" class="btn btn-secondary btn-sm" id="bulk-export"><svg class="icon"><use href="#i-download"/></svg>Export selected</button>
+        <button type="button" class="btn btn-danger btn-sm" id="bulk-delete"><svg class="icon"><use href="#i-trash"/></svg>Delete</button>
+        <button type="button" class="btn btn-ghost btn-sm" id="bulk-clear">Clear selection</button>
+      </div>
+      <div class="table-wrap" id="table-wrap"></div>
+      <div class="table-foot" id="table-foot"></div>
+    </section>
+  </main>
+</div>
+
+<div class="scrim" id="scrim"></div>
+<aside class="drawer" id="excel-drawer" aria-labelledby="xl-title" role="dialog" aria-modal="true">
+  <div class="drawer-head">
+    <div class="mark"><svg class="icon"><use href="#i-sheet"/></svg></div>
+    <div><h2 id="xl-title">Excel Hub</h2><p>Export scenarios for business testers, then import their results.</p></div>
+    <button type="button" class="icon-btn" id="btn-close-excel" aria-label="Close Excel Hub"><svg class="icon"><use href="#i-x"/></svg></button>
+  </div>
+  <div class="drawer-body">
+    <div>
+      <p class="sec-title">What to export</p>
+      <div class="radio-row">
+        <label><input type="radio" name="xl-scope" value="all" checked> All scenarios (<span id="xl-n-all">0</span>)</label>
+        <label><input type="radio" name="xl-scope" value="filtered"> Current filter (<span id="xl-n-filtered">0</span>)</label>
+        <label><input type="radio" name="xl-scope" value="selected"> Selected rows (<span id="xl-n-selected">0</span>)</label>
+      </div>
+    </div>
+    <div>
+      <p class="sec-title">Workbook structure (.xlsx)</p>
+      <div class="sheets" id="xl-sheets"></div>
+    </div>
+    <div>
+      <p class="sec-title">Import execution results</p>
+      <label class="drop" id="drop">
+        <svg class="icon"><use href="#i-upload"/></svg>
+        <strong>Drop the filled workbook here or click to browse</strong>
+        <small>.xlsx exported from TestOrbit or the UAT template. Status, step results, testers and defect IDs merge by Scenario ID.</small>
+        <input type="file" id="xl-file" accept=".xlsx,.xlsm,.xls" class="sr-only">
+      </label>
+      <div id="xl-result"></div>
+    </div>
+  </div>
+  <div class="drawer-foot">
+    <button type="button" class="btn btn-secondary" id="xl-template"><svg class="icon"><use href="#i-file"/></svg>Blank UAT template</button>
+    <button type="button" class="btn btn-excel" id="xl-export"><svg class="icon"><use href="#i-download"/></svg>Download workbook</button>
+  </div>
+</aside>
+
+<dialog id="ai-dialog" aria-labelledby="ai-title">
+  <form method="dialog">
+    <div class="dlg-head"><h2 id="ai-title">AI generation settings</h2><p>Uses OpenRouter free models only. Your key stays in this browser's local storage.</p></div>
+    <div class="dlg-body">
+      <div class="field"><label for="ai-key">OpenRouter API key</label><input class="input" id="ai-key" type="password" autocomplete="off" placeholder="sk-or-v1-…"></div>
+      <p class="help">Create one at openrouter.ai/keys. Free models allow a limited number of requests per day.</p>
+      <div class="field"><label for="ai-model">Primary free model</label><select class="select" id="ai-model"><option value="">Loading free models…</option></select></div>
+      <div class="field"><label for="ai-fallback">Fallback free model</label><select class="select" id="ai-fallback"><option value="">None</option></select></div>
+      <p class="help" id="ai-models-help">Only model ids ending in “:free” are listed. If the primary is rate-limited, OpenRouter tries the fallback.</p>
+    </div>
+    <div class="dlg-foot">
+      <button type="submit" class="btn btn-ghost" value="cancel">Cancel</button>
+      <button type="submit" class="btn btn-primary" value="save">Save</button>
+    </div>
+  </form>
+</dialog>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
+<script src="js/library.js"></script>
+<script src="js/generator.js"></script>
+<script src="js/excel.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
