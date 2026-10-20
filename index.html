@@ -219,6 +219,21 @@
   </form>
 </dialog>
 
+<dialog id="login-dialog" aria-labelledby="login-title">
+  <form method="dialog" id="login-form">
+    <div class="dlg-head"><h2 id="login-title">Sign in to the scenario database</h2><p>Required to load and save shared scenarios. Without it, work stays in this browser.</p></div>
+    <div class="dlg-body">
+      <div class="field"><label for="login-user">Username</label><input class="input" id="login-user" autocomplete="username" required></div>
+      <div class="field"><label for="login-pass">Password</label><input class="input" id="login-pass" type="password" autocomplete="current-password" required></div>
+      <p class="login-error" id="login-error" role="alert"></p>
+    </div>
+    <div class="dlg-foot">
+      <button type="submit" class="btn btn-ghost" value="cancel" formnovalidate>Work offline</button>
+      <button type="submit" class="btn btn-primary" value="signin">Sign in</button>
+    </div>
+  </form>
+</dialog>
+
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>

@@ -36,7 +36,7 @@ function persist() {
     env: state.env, type: state.type, modules: [...state.modules], flows: [...state.flows], guidance: state.guidance,
     opts: state.opts, mode: state.mode, ai: state.ai, project: state.project, scenarios: state.scenarios,
   });
-  if (state.storage !== 'browser') scheduleSync();
+  if (state.storage === 'server' || state.storage === 'server-error') scheduleSync();
 }
 
 /* ---------- Server sync (Neon Postgres via server.js) ---------- */
@@ -46,9 +46,27 @@ function scheduleSync() {
   syncTimer = setTimeout(syncNow, 700);
 }
 
-async function putJson(url, body) {
-  const res = await fetch(url, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body });
+/* Credentials live in sessionStorage only (cleared when the browser session ends). */
+const AUTH_KEY = 'testorbit.auth';
+const session = {
+  get() { try { return sessionStorage.getItem(AUTH_KEY) || ''; } catch { return ''; } },
+  set(v) { try { v ? sessionStorage.setItem(AUTH_KEY, v) : sessionStorage.removeItem(AUTH_KEY); } catch { /* unavailable */ } },
+};
+
+class AuthError extends Error {}
+
+async function apiFetch(url, opts = {}) {
+  const headers = Object.assign({ 'X-TestOrbit': '1' }, opts.headers);
+  const token = session.get();
+  if (token) headers.Authorization = `Basic ${token}`;
+  const res = await fetch(url, Object.assign({}, opts, { headers }));
+  if (res.status === 401) throw new AuthError('Sign-in required');
   if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error || `HTTP ${res.status}`);
+  return res;
+}
+
+function putJson(url, body) {
+  return apiFetch(url, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body });
 }
 
 async function syncNow() {
@@ -58,8 +76,31 @@ async function syncNow() {
     if (pj !== lastSyncedProject) { await putJson('/api/project', pj); lastSyncedProject = pj; }
     setStorage('server');
   } catch (e) {
+    if (e instanceof AuthError) { setStorage('auth'); openLogin(); return; }
     setStorage('server-error');
     console.warn('Sync failed:', e.message);
+  }
+}
+
+function openLogin(message) {
+  const dlg = $('#login-dialog');
+  if (dlg.open) return;
+  $('#login-error').textContent = message || '';
+  $('#login-pass').value = '';
+  dlg.showModal();
+  $('#login-user').focus();
+}
+
+async function signIn(user, pass) {
+  session.set(btoa(unescape(encodeURIComponent(`${user}:${pass}`))));
+  try {
+    await apiFetch('/api/health');
+    $('#login-dialog').close('ok');
+    toast('Signed in. Scenarios now sync to the database.');
+    await loadFromServer();
+  } catch (e) {
+    session.set('');
+    $('#login-error').textContent = e instanceof AuthError ? 'Incorrect username or password.' : e.message;
   }
 }
 
@@ -68,9 +109,15 @@ async function loadFromServer() {
   try {
     const ctrl = new AbortController();
     const t = setTimeout(() => ctrl.abort(), 8000);
-    const res = await fetch('/api/state', { signal: ctrl.signal });
+    let res;
+    try {
+      res = await apiFetch('/api/state', { signal: ctrl.signal });
+    } catch (e) {
+      clearTimeout(t);
+      if (e instanceof AuthError) { setStorage('auth'); openLogin(); }
+      return;
+    }
     clearTimeout(t);
-    if (!res.ok) return;
     const data = await res.json();
     if (data.scenarios.length) {
       state.scenarios = data.scenarios;
@@ -90,7 +137,9 @@ async function loadFromServer() {
 function setStorage(s) {
   state.storage = s;
   const el = $('#storage-note');
-  if (el) el.textContent = { browser: 'Saved in this browser', server: 'Saved to Postgres', 'server-error': 'Database sync failed – retrying on next change' }[s];
+  if (el) el.innerHTML = s === 'auth'
+    ? 'Saved in this browser · <button type="button" class="linkish" data-act="signin">Sign in to sync</button>'
+    : esc({ browser: 'Saved in this browser', server: 'Saved to Postgres', 'server-error': 'Database sync failed – retrying on next change' }[s]);
 }
 
 const $ = sel => document.querySelector(sel);
@@ -588,6 +637,13 @@ function bind() {
   ['dragenter', 'dragover'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add('over'); }));
   ['dragleave', 'drop'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.remove('over'); }));
   drop.addEventListener('drop', e => handleImport(e.dataTransfer.files[0]));
+
+  $('#table-foot').addEventListener('click', e => { if (e.target.closest('[data-act="signin"]')) openLogin(); });
+  $('#login-form').addEventListener('submit', e => {
+    if (e.submitter && e.submitter.value === 'cancel') return; // dialog closes; stay on browser storage
+    e.preventDefault();
+    signIn($('#login-user').value.trim(), $('#login-pass').value);
+  });
 
   $('#btn-ai-settings').addEventListener('click', openAiSettings);
   $('#ai-dialog').addEventListener('close', () => {

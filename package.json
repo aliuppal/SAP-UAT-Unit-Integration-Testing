@@ -3,10 +3,9 @@
   "version": "1.0.0",
   "private": true,
   "description": "Generate SAP UAT, integration and unit test scenarios for S/4HANA Public Cloud or SAP GUI, export to Excel, store in Postgres.",
-  "main": "server.js",
   "scripts": {
-    "start": "node --env-file-if-exists=.env server.js",
-    "dev": "node --watch --env-file-if-exists=.env server.js"
+    "start": "node --env-file-if-exists=.env lib/server.js",
+    "dev": "node --watch --env-file-if-exists=.env lib/server.js"
   },
   "engines": {
     "node": ">=22"

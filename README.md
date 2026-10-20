@@ -18,15 +18,35 @@ Generate SAP test scenarios and hand them to business testers as Excel workbooks
 - **AI mode (optional):** generates scenarios with OpenRouter **free** models only (`:free` ids). The API key is stored in the browser.
 - **Storage:** scenarios are saved to Postgres (e.g. Neon) through the bundled server. When no database is configured, they stay in the browser.
 
-## Run
+## Run locally
 
 ```bash
 npm install
-cp .env.example .env   # set DATABASE_URL
+cp .env.example .env   # set DATABASE_URL, BASIC_AUTH_USER, BASIC_AUTH_PASS
 npm start              # http://localhost:5180
 ```
 
-Tables are created automatically on first start.
+Tables are created automatically on the first API call.
+
+## Deploy to Vercel
+
+The UI is served as static files. `api/index.js` is the single serverless function, and all `/api/*` routes are rewritten to it (see `vercel.json`). Set three production env vars, then deploy:
+
+```bash
+vercel link
+node --env-file=.env -e "process.stdout.write(process.env.DATABASE_URL)"   | vercel env add DATABASE_URL production
+node --env-file=.env -e "process.stdout.write(process.env.BASIC_AUTH_USER)" | vercel env add BASIC_AUTH_USER production
+node --env-file=.env -e "process.stdout.write(process.env.BASIC_AUTH_PASS)" | vercel env add BASIC_AUTH_PASS production
+vercel deploy --prod
+```
+
+## API security
+
+- Every `/api/*` route requires HTTP Basic auth (`BASIC_AUTH_USER` / `BASIC_AUTH_PASS`), and credentials are compared in constant time.
+- On Vercel, auth is always enforced. If the credentials are not configured, the API returns 503 instead of opening up.
+- After 10 failed attempts from one IP, that IP is blocked for 15 minutes. The counter is kept per serverless instance.
+- The web app shows its own sign-in dialog and keeps credentials in `sessionStorage` for the browser session only. Without signing in, you can keep working offline; scenarios then stay in that browser.
+- The UI itself is public but holds no data. All scenario data is behind the API.
 
 You can also open `index.html` directly from disk. That works without a server, and data is then stored in the browser only.
 
